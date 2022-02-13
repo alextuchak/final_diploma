@@ -49,15 +49,6 @@ class ParameterSerializers(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-class ProductSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
-
-    class Meta:
-        model = Product
-        fields = ('id', 'model', 'name', 'category')
-        read_only_fields = ('id',)
-
-
 class ProductInfSerializer(serializers.ModelSerializer):
     parameter = ParameterSerializers()
 
@@ -67,12 +58,21 @@ class ProductInfSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-class ShopProductSerializer(serializers.ModelSerializer):
-    shop = ShopSerializer()
-    product = ProductSerializer()
+class ProductSerializer(serializers.ModelSerializer):
+    category = CategorySerializer()
     product_inf = ProductInfSerializer(many=True)
 
     class Meta:
+        model = Product
+        fields = ('id', 'model', 'name', 'category', 'product_inf')
+        read_only_fields = ('id',)
+
+
+class ShopProductSerializer(serializers.ModelSerializer):
+    shop = ShopSerializer()
+    product = ProductSerializer()
+
+    class Meta:
         model = ShopProduct
-        fields = ('id', 'shop', 'product', 'ext_id', 'quantity', 'price', 'price_rrc', 'product_inf')
+        fields = ('id', 'shop', 'product', 'ext_id', 'quantity', 'price', 'price_rrc')
         read_only_fields = ('id',)

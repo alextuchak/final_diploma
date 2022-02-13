@@ -152,7 +152,7 @@ class Parameter(models.Model):
 
 
 class ProductInf(models.Model):
-    product_inf = models.ForeignKey(ShopProduct, verbose_name='Товар', related_name='product_inf', blank=True,
+    product = models.ForeignKey(Product, verbose_name='Товар', related_name='product_inf', blank=True,
                                 null=True, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, verbose_name='Параметр', related_name='product_inf', blank=True,
                                   on_delete=models.CASCADE)

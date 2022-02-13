@@ -163,14 +163,13 @@ class ShopUpload(APIView):
                                                                               price_rrc=goods['price_rrc'],
                                                                               product=prod_pk, shop=shop)
                     shopproduct_object.save()
-                    shop_prod_pk = ShopProduct.objects.filter(ext_id=goods['id']).first()
                     for parameters, value in goods['parameters'].items():
                         parameter_object, _ = Parameter.objects.get_or_create(name=parameters)
                         parameter_object.save()
                         param_obj_pk = Parameter.objects.filter(name=parameters).first()
                         product_inf_object, _ = ProductInf.objects.get_or_create(value=value,
                                                                                  parameter=param_obj_pk,
-                                                                                 product_inf=shop_prod_pk)
+                                                                                 product=prod_pk)
                         product_inf_object.save()
             except yaml.YAMLError as exc:
                 return JsonResponse({'Status': False, 'Error': str(exc)})
