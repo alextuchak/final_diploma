@@ -7,11 +7,15 @@ import yaml
 from orders.settings import BASE_DIR, DATA_ROOT
 import os
 from django.contrib.auth.password_validation import validate_password
-from backend.serializers import UserSerializer
+from backend.serializers import UserSerializer, CategorySerializer, ShopSerializer, ProductSerializer, \
+    ShopProductSerializer, ProductInfSerializer
 from backend.signals import new_user_registered, new_order
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class RegisterAccount(APIView):
@@ -45,9 +49,7 @@ class RegisterAccount(APIView):
 
 
 class ConfirmAccount(APIView):
-    """
-    Класс для подтверждения почтового адреса
-    """
+
     # Регистрация методом POST
     def post(self, request, *args, **kwargs):
 
@@ -68,9 +70,6 @@ class ConfirmAccount(APIView):
 
 
 class AccountDetails(APIView):
-    """
-    Класс для работы данными пользователя
-    """
 
     # получить данные
     def get(self, request, *args, **kwargs):
@@ -110,9 +109,7 @@ class AccountDetails(APIView):
 
 
 class LoginAccount(APIView):
-    """
-    Класс для авторизации пользователей
-    """
+
     # Авторизация методом POST
     def post(self, request, *args, **kwargs):
 
@@ -128,6 +125,7 @@ class LoginAccount(APIView):
             return JsonResponse({'Status': False, 'Errors': 'Не удалось авторизовать'})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
 
 class ShopUpload(APIView):
     def post(self, request):
@@ -158,18 +156,59 @@ class ShopUpload(APIView):
                     product_object, _ = Product.objects.get_or_create(name=goods['name'], model=goods['model'],
                                                                       category=category)
                     product_object.save()
-                    prod_pk = Product.objects.filter(model=goods['model']).first()
+                    prod_pk = Product.objects.filter(name=goods['name']).first()
                     shopproduct_object, _ = ShopProduct.objects.get_or_create(ext_id=goods['id'],
                                                                               quantity=goods['quantity'],
                                                                               price=goods['price'],
                                                                               price_rrc=goods['price_rrc'],
                                                                               product=prod_pk, shop=shop)
                     shopproduct_object.save()
+                    shop_prod_pk = ShopProduct.objects.filter(ext_id=goods['id']).first()
                     for parameters, value in goods['parameters'].items():
                         parameter_object, _ = Parameter.objects.get_or_create(name=parameters)
                         parameter_object.save()
-                        product_inf_object, _ = ProductInf.objects.get_or_create(value=value, product=prod_pk,
-                                                                                 parameter=parameter_object)
+                        param_obj_pk = Parameter.objects.filter(name=parameters).first()
+                        product_inf_object, _ = ProductInf.objects.get_or_create(value=value,
+                                                                                 parameter=param_obj_pk,
+                                                                                 product_inf=shop_prod_pk)
                         product_inf_object.save()
             except yaml.YAMLError as exc:
                 return JsonResponse({'Status': False, 'Error': str(exc)})
+
+
+class CategoryViewSet(ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    http_method_names = ['get', ]
+
+
+class ShopViewSet(ModelViewSet):
+    queryset = Shop.objects.all()
+    serializer_class = ShopSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name', 'is_work']
+    http_method_names = ['get', ]
+
+
+class ProductViewSet(ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'model']
+    http_method_names = ['get', ]
+
+
+class ShopProductViewSet(ModelViewSet):
+    queryset = ShopProduct.objects.all()
+    serializer_class = ShopProductSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['product__model', 'product__name']
+    http_method_names = ['get', ]
+
+
+class ProductInfViewSet(ModelViewSet):
+    queryset = ProductInf.objects.all()
+    serializer_class = ProductInfSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['product_inf_id__product_id__model', 'product_inf_id__product_id__name']
+    http_method_names = ['get', ]
