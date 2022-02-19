@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from backend.views import ShopUpload, RegisterAccount, ConfirmAccount, LoginAccount, CategoryViewSet, ShopViewSet, \
-    ProductViewSet, ShopProductViewSet, ProductInfViewSet
+    ProductViewSet, ShopProductViewSet, ProductInfViewSet, UserContact
 from rest_framework.routers import DefaultRouter
 
 
@@ -32,4 +32,4 @@ urlpatterns += [path('shop/upload', ShopUpload.as_view(), name='shop-upload')]
 urlpatterns += [path('user/register', RegisterAccount.as_view(), name='user-register')]
 urlpatterns += [path('user/register/confirm', ConfirmAccount.as_view(), name='user-register-confirm')]
 urlpatterns += [path('user/login', LoginAccount.as_view(), name='user-login')]
-
+urlpatterns += [path('user/contact', UserContact.as_view(), name='user-contact')]

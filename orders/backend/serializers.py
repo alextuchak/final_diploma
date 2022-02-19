@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from backend.models import Shop, Contact, User, Category, Product, ShopProduct, Parameter, ProductInf
+from rest_framework.exceptions import ValidationError
+import re
 
 
 class ShopSerializer(serializers.ModelSerializer):
@@ -18,13 +20,25 @@ class ContactSerializer(serializers.ModelSerializer):
             'user': {'write_only': True}
         }
 
+    def validate(self, attrs):
+        if attrs['phone']:
+            if re.search(r"((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}", attrs['phone']) is not None:
+                return attrs
+            else:
+                raise ValidationError({'Status': False, 'Errors': "Некорректный формат номера"})
+        if attrs['zip']:
+            if len(attrs['zip']) <= 10 & attrs['zip'] is not None:
+                return attrs
+            else:
+                raise ValidationError({'Status': False, 'Errors': "Некорректный формат почтового индекса"})
+
 
 class UserSerializer(serializers.ModelSerializer):
     contacts = ContactSerializer(read_only=True, many=True)
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts', 'password')
+        fields = ('id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts', 'password', 'type')
         read_only_fields = ('id',)
 
 
@@ -36,6 +50,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ShopSerializer(serializers.ModelSerializer):
+    seller = UserSerializer()
     class Meta:
         model = Shop
         fields = ('id', 'name', 'seller', 'url', 'is_work')
