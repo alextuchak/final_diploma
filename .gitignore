@@ -1,0 +1,5 @@
+/venv/
+/orders/backend/migrations/
+/orders/.pytest_cache
+/orders/backend/migrations/*
+__pycache__/
