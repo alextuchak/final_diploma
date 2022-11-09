@@ -2,6 +2,7 @@ from rest_framework import serializers
 from backend.models import Shop, Contact, User, Category, Product, ShopProduct, Parameter, ProductInf, OrderItem, Order
 from rest_framework.exceptions import ValidationError
 import re
+import pprint
 
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -21,12 +22,7 @@ class ContactSerializer(serializers.ModelSerializer):
             if re.search(r"((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}", attrs['phone']) is not None:
                 return attrs
             else:
-                raise ValidationError({'Status': False, 'Errors': "Некорректный формат номера"})
-        if attrs['zip']:
-            if len(attrs['zip']) <= 10 & attrs['zip'] is not None:
-                return attrs
-            else:
-                raise ValidationError({'Status': False, 'Errors': "Некорректный формат почтового индекса"})
+                raise ValidationError({'Status': False, 'Error': "Некорректный формат номера"}, code=400)
 
 
 class UserSerializer(serializers.ModelSerializer):
