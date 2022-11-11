@@ -4,13 +4,15 @@ import pytest
 from backend.models import *
 from rest_framework.authtoken.models import Token
 import os
+from mock import patch
 
 
 @pytest.mark.django_db
 def test_user_registration(client, user_info, ):
-    url = 'http://127.0.0.1:8000/user/register'
-    response = client.post(url, data=user_info)
-    assert response.status_code == 201
+    with patch('backend.tasks.new_user_registered_task') as mock_task:
+        url = 'http://127.0.0.1:8000/user/register'
+        response = client.post(url, data=user_info)
+        assert response.status_code == 201
 
 
 @pytest.mark.django_db
@@ -301,15 +303,233 @@ def test_get_products_in_shop(client, shops_create):
 
 @pytest.mark.django_db
 def test_shop_inf_upload(client, seller_token):
-    url = 'http://127.0.0.1:8000/shop/upload'
-    data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
-    content = encode_multipart('BoUnDaRyStRiNg', data)
-    content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
-    response = client.post(url, content, content_type=content_type)
-    print(response.json())
+    with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
+        url = 'http://127.0.0.1:8000/shop/upload'
+        data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
+        content = encode_multipart('BoUnDaRyStRiNg', data)
+        content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+        response = client.post(url, content, content_type=content_type)
+        assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_shop_inf_upload_no_auth(client):
+    with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
+        url = 'http://127.0.0.1:8000/shop/upload'
+        data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
+        content = encode_multipart('BoUnDaRyStRiNg', data)
+        content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+        response = client.post(url, content, content_type=content_type)
+        assert response.status_code == 403
+        assert response.json()['Status'] == False
+        assert response.json()['Error'] == 'Log in required'
+
+
+@pytest.mark.django_db
+def test_shop_inf_upload_buyer(client, buyer_token):
+    with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
+        url = 'http://127.0.0.1:8000/shop/upload'
+        data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
+        content = encode_multipart('BoUnDaRyStRiNg', data)
+        content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+        response = client.post(url, content, content_type=content_type)
+        assert response.status_code == 403
+        assert response.json()['Status'] == False
+        assert response.json()['Error'] == 'Только для магазинов'
+
+
+@pytest.mark.django_db
+def test_shop_inf_upload_wrong_arg(client, seller_token):
+    with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
+        url = 'http://127.0.0.1:8000/shop/upload'
+        data = {'yaml': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
+        content = encode_multipart('BoUnDaRyStRiNg', data)
+        content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+        response = client.post(url, content, content_type=content_type)
+        assert response.status_code == 400
+        assert response.json()['Status'] == False
+
+
+@pytest.mark.django_db
+def test_basket_post(client, buyer_token, shops_create):
+    data = [{"product_info": shops_create, "quantity": 4}]
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.post(url, data=data)
     assert response.status_code == 201
 
 
+@pytest.mark.django_db
+def test_basket_post_no_auth(client, shops_create):
+    data = [{"product_info": shops_create, "quantity": 4}]
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.post(url, data=data)
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Authentication credentials were not provided.'
+
+
+@pytest.mark.django_db
+def test_basket_post_wrong_arg(client, buyer_token, shops_create):
+    data = [{"product_info": 27, "quantity": 4}]
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.post(url, data=data)
+    assert response.status_code == 400
+    assert response.json()['Возникла ошибка!']['product_info'][0] == 'Invalid pk "27" - object does not exist.'
+
+
+@pytest.mark.django_db
+def test_basket_post_no_data(client, buyer_token, shops_create):
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.post(url,)
+    assert response.status_code == 403
+    assert response.json()['Status'] == False
+    assert response.json()['Возникла ошибка!'] == 'Указаны не все аргументы'
+
+
+@pytest.mark.django_db
+def test_basket_get(client, buyer_token, basket_create):
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json()[0]['total_sum'] == 400000
+
+
+@pytest.mark.django_db
+def test_basket_put(client, buyer_token, basket_create):
+    data = [{"product_info": basket_create[0], "quantity": 7}]
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.put(url, data=data)
+    assert response.status_code == 200
+    assert response.json()['Status'] == True
+    ordered_items = OrderItem.objects.filter(id=basket_create[1]).first()
+    assert data[0]['quantity'] == ordered_items.quantity
+
+
+@pytest.mark.django_db
+def test_basket_put_no_data(client, buyer_token, basket_create):
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.put(url,)
+    assert response.status_code == 403
+    assert response.json()['Status'] == False
+    assert response.json()['Error'] == 'Не указаны все необходимые аргументы'
+
+
+@pytest.mark.django_db
+def test_basket_put_wrong_args(client, buyer_token, basket_create):
+    data = [{"quantity": 7}]
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.put(url, data=data)
+    assert response.status_code == 403
+    assert response.json()['Возникла ошибка!']['product_info'][0] == 'This field is required.'
+
+
+@pytest.mark.django_db
+def test_basket_delete(client, buyer_token, basket_create):
+    url = 'http://127.0.0.1:8000/basket/'
+    data = {'items': basket_create[0]}
+    content = encode_multipart('BoUnDaRyStRiNg', data)
+    content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+    response = client.delete(url, content, content_type=content_type)
+    print(response.json())
+    assert response.status_code == 200
+    basket = OrderItem.objects.all()
+    assert len(basket) == 0
+
+
+@pytest.mark.django_db
+def test_basket_delete_wrong_arg(client, buyer_token, basket_create):
+    url = 'http://127.0.0.1:8000/basket/'
+    data = {'items': 5555}
+    content = encode_multipart('BoUnDaRyStRiNg', data)
+    content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+    response = client.delete(url, content, content_type=content_type)
+    assert response.status_code == 403
+    assert response.json()['Status'] == False
+    assert response.json()['Error'] == 'Укажите корректные товары для удаления'
+
+
+@pytest.mark.django_db
+def test_basket_delete_no_arg(client, buyer_token, basket_create):
+    url = 'http://127.0.0.1:8000/basket/'
+    response = client.delete(url,)
+    assert response.status_code == 403
+    assert response.json()['Status'] == False
+    assert response.json()['Error'] == 'Не указаны все необходимые аргументы'
+
+
+@pytest.mark.django_db
+def test_order_create(client, buyer_token, basket_create):
+    with patch('backend.tasks.new_order_task') as mock_task1:
+        with patch('backend.tasks.new_order_for_seller_task') as mock_task2:
+            url = 'http://127.0.0.1:8000/order/customer/'
+            data = {'id': basket_create[2]}
+            content = encode_multipart('BoUnDaRyStRiNg', data)
+            content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+            response = client.post(url, content, content_type=content_type)
+            assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_order_create_without_contact(client, buyer_token, basket_create):
+    with patch('backend.tasks.new_order_task') as mock_task1:
+        with patch('backend.tasks.new_order_for_seller_task') as mock_task2:
+            cotact = Contact.objects.filter(user=basket_create[3]).delete()
+            url = 'http://127.0.0.1:8000/order/customer/'
+            data = {'id': basket_create[2]}
+            content = encode_multipart('BoUnDaRyStRiNg', data)
+            content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
+            response = client.post(url, content, content_type=content_type)
+            assert response.status_code == 403
+            assert response.json()['Error'] == 'Не указаны контакты для связи'
+
+
+@pytest.mark.django_db
+def test_order_create_no_data(client, buyer_token, basket_create):
+    with patch('backend.tasks.new_order_task') as mock_task1:
+        with patch('backend.tasks.new_order_for_seller_task') as mock_task2:
+            url = 'http://127.0.0.1:8000/order/customer/'
+            response = client.post(url,)
+            assert response.status_code == 403
+            assert response.json()['Error'] == 'Не указаны все необходимые аргументы'
+
+
+@pytest.mark.django_db
+def test_order_get_by_seller(client, order_create):
+    url = 'http://127.0.0.1:8000/order/seller/'
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json()[0]['total_sum'] == 400000
+    assert response.json()[0]['status'] == "new"
+
+
+@pytest.mark.django_db
+def test_order_put_by_seller(client, order_create):
+    with patch('backend.tasks.order_status_change_task') as mock_task:
+        url = 'http://127.0.0.1:8000/order/seller/'
+        data = {"id": order_create[1], "status": "confirmed"}
+        response = client.put(url, data)
+        assert response.status_code == 201
+        assert response.json()["Статус заказа обновлен"] == data['status']
+
+
+@pytest.mark.django_db
+def test_order_put_by_seller_wrong_data(client, order_create):
+    with patch('backend.tasks.order_status_change_task') as mock_task:
+        url = 'http://127.0.0.1:8000/order/seller/'
+        data = {"id": order_create[1],}
+        response = client.put(url, data)
+        assert response.status_code == 403
+        assert response.json()['Возникла ошибка!'] == "Некоректный формат данных"
+
+
+@pytest.mark.django_db
+def test_order_put_by_buyer(client, order_create):
+    with patch('backend.tasks.order_status_change_task') as mock_task:
+        url = 'http://127.0.0.1:8000/order/seller/'
+        data = {"id": order_create[1], "status": "confirmed"}
+        client.credentials(HTTP_AUTHORIZATION=f'Token {order_create[2]}')
+        response = client.put(url, data,)
+        assert response.status_code == 403
+        assert response.json()['Error'] == 'Только для магазинов'
 
 
 

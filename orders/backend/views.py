@@ -295,6 +295,7 @@ class BasketViewSet(ModelViewSet):
     """
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
 
     #
@@ -319,16 +320,19 @@ class BasketViewSet(ModelViewSet):
                         except IntegrityError as err:
                             return JsonResponse(err)
                     else:
-                        return JsonResponse({'Status': False, 'Возникла ошибка!': serializer.errors})
-                return JsonResponse({'Status': True, 'Добавлено объектов': objects_created})
+                        return JsonResponse({'Status': False, 'Возникла ошибка!': serializer.errors}, status=400)
+                return JsonResponse({'Status': True, 'Добавлено объектов': objects_created}, status=201)
             except TypeError as error:
                 return JsonResponse({error})
-        return JsonResponse({'Status': False, 'Возникла ошибка!': "Указаны не все аргументы"})
+        return JsonResponse({'Status': False, 'Возникла ошибка!': "Указаны не все аргументы"}, status=403)
 
     #
     @action(methods=['delete'], detail=False)
     def delete(self, request, *args, **kwargs):
-        items_to_del = str(self.request.data['items']).split(',')
+        try:
+            items_to_del = str(self.request.data['items']).split(',')
+        except KeyError :
+            return JsonResponse({'Status': False, 'Error': 'Не указаны все необходимые аргументы'}, status=403)
         if items_to_del:
             basket, _ = Order.objects.get_or_create(user_id=self.request.user.id, status='basket')
             query = Q()
@@ -340,10 +344,11 @@ class BasketViewSet(ModelViewSet):
             if deleted_status:
                 deleted_count = OrderItem.objects.filter(query).delete()[0]
                 if deleted_count != 0:
-                    return JsonResponse({'Status': True, 'Удалено объектов': deleted_count})
+                    return JsonResponse({'Status': True, 'Удалено объектов': deleted_count}, status=200)
                 else:
-                    return JsonResponse({'Status': False, 'Errors': 'Укажите корректные товары для удаления'})
-        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+                    return JsonResponse({'Status': False, 'Error': 'Укажите корректные товары для удаления'},
+                                        status=403)
+        return JsonResponse({'Status': False, 'Error': 'Не указаны все необходимые аргументы'}, status=403)
 
     #
     @action(methods=['put'], detail=False)
@@ -361,11 +366,11 @@ class BasketViewSet(ModelViewSet):
                                                                         product_info_id=items['product_info']).update(
                                 quantity=items['quantity'])
                     else:
-                        return JsonResponse({'Status': False, 'Возникла ошибка!': serializer.errors})
-                return JsonResponse({"Status": True, "Обновлено объектов": objects_updated})
+                        return JsonResponse({'Status': False, 'Возникла ошибка!': serializer.errors}, status=403)
+                return JsonResponse({"Status": True, "Обновлено объектов": objects_updated}, status=200)
             except ValueError:
                 return JsonResponse({'Status': False, 'Возникла ошибка!': "Некорректный формат данных"})
-        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+        return JsonResponse({'Status': False, 'Error': 'Не указаны все необходимые аргументы'}, status=403)
 
 
 class OrderViewSet(ModelViewSet):
@@ -374,6 +379,7 @@ class OrderViewSet(ModelViewSet):
     """
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -388,7 +394,7 @@ class OrderViewSet(ModelViewSet):
                 try:
                     is_updated = Order.objects.filter(id=self.request.data['id']).update(status='new')
                 except IntegrityError:
-                    return JsonResponse({'Status': False, 'Errors': 'Аргументы указаны неверно'})
+                    return JsonResponse({'Status': False, 'Error': 'Аргументы указаны неверно'})
                 else:
                     if is_updated:
                         contacts = Contact.objects.filter(user_id=self.request.user.id).first()
@@ -401,11 +407,12 @@ class OrderViewSet(ModelViewSet):
                                                             order_id=self.request.data['id'],
                                                             buyer_id=self.request.user.id)
 
-                            return JsonResponse({'Status': True})
+                            return JsonResponse({'Status': True}, status=201)
                         else:
-                            return JsonResponse({'Status': False, 'Errors': 'Не указаны контакты для связи'})
+                            return JsonResponse({'Status': False, 'Error': 'Не указаны контакты для связи'},
+                                                status=403)
 
-        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+        return JsonResponse({'Status': False, 'Error': 'Не указаны все необходимые аргументы'}, status=403)
 
 
 class SellerOrderViewSet(ModelViewSet):
@@ -415,6 +422,7 @@ class SellerOrderViewSet(ModelViewSet):
     """
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -429,13 +437,17 @@ class SellerOrderViewSet(ModelViewSet):
     def put(self, request, *args, **kwargs):
         if request.user.type != 'seller':
             return JsonResponse({'Status': False, 'Error': 'Только для магазинов'}, status=403)
-        try:
-            order = Order.objects.filter(id=self.request.data['id']).update(status=self.request.
-                                                                                data['status'])
-            buyer = Order.objects.filter(id=self.request.data['id']).first()
-            order_status_change_task.delay(user_id=self.request.user.id,
-                                               order_id=self.request.data['id'],
-                                               buyer_id=buyer.user_id)
-            return JsonResponse({"Status": True, "Статус заказа обновлен": self.request.data['status']})
-        except ValueError or IntegrityError:
-            return JsonResponse({'Status': False, 'Возникла ошибка!': "Некоректный формат данных"})
+        if 'id' and 'status' in self.request.data:
+            try:
+                order = Order.objects.filter(id=self.request.data['id']).update(status=self.request.
+                                                                                    data['status'])
+                buyer = Order.objects.filter(id=self.request.data['id']).first()
+                order_status_change_task.delay(user_id=self.request.user.id,
+                                                   order_id=self.request.data['id'],
+                                                   buyer_id=buyer.user_id)
+                return JsonResponse({"Status": True, "Статус заказа обновлен": self.request.data['status']}, status=201)
+            except IntegrityError:
+                return JsonResponse({'Status': False, 'Возникла ошибка!': "Некоректный формат данных"}, status=403)
+        else:
+            return JsonResponse({'Status': False, 'Возникла ошибка!': "Некоректный формат данных"}, status=403)
+
