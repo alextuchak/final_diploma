@@ -9,6 +9,10 @@ from mock import patch
 
 @pytest.mark.django_db
 def test_user_registration(client, user_info, ):
+    """
+    Тест на регистрацию пользователя
+    Ожидаемый результат - подтверждение регистрации
+    """
     with patch('backend.tasks.new_user_registered_task') as mock_task:
         url = 'http://127.0.0.1:8000/user/register'
         response = client.post(url, data=user_info)
@@ -17,6 +21,10 @@ def test_user_registration(client, user_info, ):
 
 @pytest.mark.django_db
 def test_user_reg_common_password(client, user_info):
+    """
+    Тест на регистрацию пользователя с простым паролем
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/register'
     user_info.update({'password': '123'})
     response = client.post(url, data=user_info)
@@ -26,6 +34,10 @@ def test_user_reg_common_password(client, user_info):
 
 @pytest.mark.django_db
 def test_user_reg_less_arg(client, user_info):
+    """
+    Тест на регистрацию пользователя без указания всех необходимых аргументов
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/register'
     user_info.pop('first_name')
     response = client.post(url, data=user_info)
@@ -35,6 +47,10 @@ def test_user_reg_less_arg(client, user_info):
 
 @pytest.mark.django_db
 def test_user_confirm(client, user_create):
+    """
+    Тест на подтверждение аккаунта
+    Ожидаемый результат - подтверждение аккаунта
+    """
     url = 'http://127.0.0.1:8000/user/register/confirm'
     token = ConfirmEmailToken.objects.create(user=user_create)
     response = client.post(url, data={'email': user_create.email, 'token': token.key})
@@ -44,6 +60,10 @@ def test_user_confirm(client, user_create):
 
 @pytest.mark.django_db
 def test_user_conf_wrong_email(client, user_create):
+    """
+    Тест на подтверждение аккаунта с указанием неверного email
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/register/confirm'
     token = ConfirmEmailToken.objects.create(user=user_create)
     response = client.post(url, data={'email': 'email@email.com', 'token': token.key})
@@ -53,6 +73,10 @@ def test_user_conf_wrong_email(client, user_create):
 
 @pytest.mark.django_db
 def test_user_conf_less_arg(client, user_create):
+    """
+    Тест на подтверждение аккаунта без указания email
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/register/confirm'
     token = ConfirmEmailToken.objects.create(user=user_create)
     response = client.post(url, data={'token': token.key})
@@ -62,6 +86,10 @@ def test_user_conf_less_arg(client, user_create):
 
 @pytest.mark.django_db
 def test_user_login(client, user_create, user_info):
+    """
+    Тест на авторизацию
+    Ожидаемый результат - авторизация и получение токена
+    """
     url = 'http://127.0.0.1:8000/user/login'
     response = client.post(url, data={'email': user_create.email, 'password': user_info['password']})
     assert response.status_code == 201
@@ -71,6 +99,10 @@ def test_user_login(client, user_create, user_info):
 
 @pytest.mark.django_db
 def test_user_login_wrong_email(client, user_create, user_info):
+    """
+    Тест на авторизацию с указанием неверного email
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/login'
     response = client.post(url, data={'email': 'email@email.com', 'password': user_info['password']})
     assert response.status_code == 401
@@ -79,6 +111,10 @@ def test_user_login_wrong_email(client, user_create, user_info):
 
 @pytest.mark.django_db
 def test_user_login_less_arg(client, user_create, user_info):
+    """
+    Тест на авторизацию без указания пароля
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/login'
     response = client.post(url, data={'password': user_info['password']})
     assert response.status_code == 403
@@ -87,6 +123,10 @@ def test_user_login_less_arg(client, user_create, user_info):
 
 @pytest.mark.django_db
 def test_get_user_info(client, seller_token):
+    """
+    Тест на получение информации об аккаунте пользователя
+    Ожидаемый результат - список информации об аккаунте
+    """
     url = 'http://127.0.0.1:8000/user/info'
     response = client.get(url)
     assert response.status_code == 200
@@ -95,6 +135,10 @@ def test_get_user_info(client, seller_token):
 
 @pytest.mark.django_db
 def test_get_user_info_no_auth(client):
+    """
+    Тест на получение информации об аккаунте пользователя без аутентификации
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/info'
     response = client.get(url)
     assert response.status_code == 403
@@ -103,6 +147,10 @@ def test_get_user_info_no_auth(client):
 
 @pytest.mark.django_db
 def test_user_change_password(client, seller_token, user_info):
+    """
+    Тест на изменение пароля пользователя
+    Ожидаемый результат - подтверждение изменения пароля
+    """
     url = 'http://127.0.0.1:8000/user/info'
     response = client.post(url, data={'password': '!Q@W#E$R%T^T12'})
     assert response.status_code == 201
@@ -113,6 +161,10 @@ def test_user_change_password(client, seller_token, user_info):
 
 @pytest.mark.django_db
 def test_user_chg_pass_less_args(client, seller_token):
+    """
+    Тест на изменение пароля пользователя без указания пароля
+    Ожидаемыйы результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/info'
     response = client.post(url)
     assert response.status_code == 403
@@ -121,6 +173,10 @@ def test_user_chg_pass_less_args(client, seller_token):
 
 @pytest.mark.django_db
 def test_user_chg_pass_no_auth(client):
+    """
+    Тест на изменение пароля пользователя без аутентификации
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/info'
     response = client.post(url, data={'password': '!Q@W#E$R%T^T12'})
     assert response.status_code == 403
@@ -129,6 +185,10 @@ def test_user_chg_pass_no_auth(client):
 
 @pytest.mark.django_db
 def test_user_chg_pass_common(client, seller_token):
+    """
+    Тест на изменение пароля пользователя на простой пароль
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/info'
     response = client.post(url, data={'password': '123'})
     assert response.status_code == 400
@@ -138,6 +198,10 @@ def test_user_chg_pass_common(client, seller_token):
 
 @pytest.mark.django_db
 def test_post_user_contact(client, seller_token, users_contact_data):
+    """
+     Тест на создание контактов пользователя
+     Ожидаемый результат - подтверждение создания контактов
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     response = client.post(url, data=users_contact_data)
     assert response.status_code == 201
@@ -146,6 +210,10 @@ def test_post_user_contact(client, seller_token, users_contact_data):
 
 @pytest.mark.django_db
 def test_post_user_contact_no_auth(client, users_contact_data):
+    """
+    Тест на создание контактов пользователя без аутентификации
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     response = client.post(url, data=users_contact_data)
     assert response.status_code == 403
@@ -154,6 +222,10 @@ def test_post_user_contact_no_auth(client, users_contact_data):
 
 @pytest.mark.django_db
 def test_post_user_contact_less_arg(client, seller_token, users_contact_data):
+    """
+    Тест на создание контактов пользователя без указания всех необходимых аргументов
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     users_contact_data.pop('country')
     response = client.post(url, data=users_contact_data)
@@ -163,6 +235,10 @@ def test_post_user_contact_less_arg(client, seller_token, users_contact_data):
 
 @pytest.mark.django_db
 def test_post_user_contact_wrong_phone(client, seller_token, users_contact_data):
+    """
+    Тест на создание контактов пользователя с указанием некорректного номера телефона
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     users_contact_data.update({'phone': 1})
     response = client.post(url, data=users_contact_data)
@@ -172,6 +248,10 @@ def test_post_user_contact_wrong_phone(client, seller_token, users_contact_data)
 
 @pytest.mark.django_db
 def test_del_contact(client, seller_token, contact_factory, user_create):
+    """
+    Тест на удаление контактной информации
+    Ожидаемый результат - подтверждение удаления
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, _quantity=1)
     data = {'items': contact[0].id}
@@ -185,6 +265,10 @@ def test_del_contact(client, seller_token, contact_factory, user_create):
 
 @pytest.mark.django_db
 def test_del_contact_no_auth(client, contact_factory, user_create):
+    """
+    Тест на удаление контактной информации без аутентификации
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, _quantity=1)
     data = {'items': contact[0].id}
@@ -198,6 +282,10 @@ def test_del_contact_no_auth(client, contact_factory, user_create):
 
 @pytest.mark.django_db
 def test_del_contact_no_content(client, seller_token, contact_factory, user_create):
+    """
+    Тест на удаление контактной информации без ее указания
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, _quantity=1)
     data = {}
@@ -211,6 +299,10 @@ def test_del_contact_no_content(client, seller_token, contact_factory, user_crea
 
 @pytest.mark.django_db
 def test_put_contact(client, seller_token, contact_factory, user_create):
+    """
+    Тест на изменение номера телефона
+    Ожидаемый результат - подтверждение изменения номера телефона
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, phone=89228888888, _quantity=1)
     data = {'id': contact[0].id, 'phone': '79999999999'}
@@ -224,6 +316,10 @@ def test_put_contact(client, seller_token, contact_factory, user_create):
 
 @pytest.mark.django_db
 def test_put_contact_no_auth(client, contact_factory, user_create):
+    """
+    Тест на изменение номера телефона без аутентификации
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, phone=89228888888, _quantity=1)
     data = {'id': contact[0].id, 'phone': '79999999999'}
@@ -237,6 +333,10 @@ def test_put_contact_no_auth(client, contact_factory, user_create):
 
 @pytest.mark.django_db
 def test_put_contact_less_arg(client, seller_token, contact_factory, user_create):
+    """
+    Тест на изменение номера телефона без указания id контакта
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, phone=89228888888, _quantity=1)
     data = {'phone': '79999999999'}
@@ -250,6 +350,10 @@ def test_put_contact_less_arg(client, seller_token, contact_factory, user_create
 
 @pytest.mark.django_db
 def test_put_contact_less_arg(client, seller_token, contact_factory, user_create):
+    """
+    Тест на изменение контактов пользователя с указанием некорректного номера телефона
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/user/contact'
     contact = contact_factory(user=user_create, phone=9, _quantity=1)
     data = {'id': contact[0].id, 'phone': '9'}
@@ -262,6 +366,10 @@ def test_put_contact_less_arg(client, seller_token, contact_factory, user_create
 
 @pytest.mark.django_db
 def test_get_categeroies(client, categories_factory):
+    """
+    Тест на получение списка категорий товаров
+    Ожидаемый результат - список категорий товаров
+    """
     url = 'http://127.0.0.1:8000/categories/'
     categories = categories_factory(_quantity=3)
     response = client.get(url)
@@ -271,6 +379,10 @@ def test_get_categeroies(client, categories_factory):
 
 @pytest.mark.django_db
 def test_get_products(client, products_create):
+    """
+    Тест на получение списка товаров
+    Ожидаемый результат - список товаров
+    """
     url = 'http://127.0.0.1:8000/products/'
     response = client.get(url)
     assert response.status_code == 200
@@ -279,6 +391,10 @@ def test_get_products(client, products_create):
 
 @pytest.mark.django_db
 def test_get_products_inf(client, products_create):
+    """
+    Тест на получение списка информации о продуктах
+    Ожидаемый результат - список с информацией о продуктах
+    """
     url = 'http://127.0.0.1:8000/product_inf/'
     response = client.get(url)
     assert response.status_code == 200
@@ -287,6 +403,10 @@ def test_get_products_inf(client, products_create):
 
 @pytest.mark.django_db
 def test_get_shops(client, shops_create):
+    """
+    Тест на на получение списка магазинов
+    Ожидаемый результат - список магазинов
+    """
     url = 'http://127.0.0.1:8000/shops/'
     response = client.get(url)
     assert response.status_code == 200
@@ -295,6 +415,10 @@ def test_get_shops(client, shops_create):
 
 @pytest.mark.django_db
 def test_get_products_in_shop(client, shops_create):
+    """
+    Тест на получение товаров в магазинах
+    Ожидаемый результат - список товаров в магазинах
+    """
     url = 'http://127.0.0.1:8000/products_in_shop/'
     response = client.get(url)
     assert response.status_code == 200
@@ -303,6 +427,10 @@ def test_get_products_in_shop(client, shops_create):
 
 @pytest.mark.django_db
 def test_shop_inf_upload(client, seller_token):
+    """
+    Тест на обновление прайса товаров
+    Ожидаемый результат - подтверждение обновления
+    """
     with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
         url = 'http://127.0.0.1:8000/shop/upload'
         data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
@@ -314,6 +442,10 @@ def test_shop_inf_upload(client, seller_token):
 
 @pytest.mark.django_db
 def test_shop_inf_upload_no_auth(client):
+    """
+    Тест на обновление прайса товаров без аутентификации
+    Ожидаемый результат - ошибка
+    """
     with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
         url = 'http://127.0.0.1:8000/shop/upload'
         data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
@@ -327,6 +459,10 @@ def test_shop_inf_upload_no_auth(client):
 
 @pytest.mark.django_db
 def test_shop_inf_upload_buyer(client, buyer_token):
+    """
+    Тест на обновление прайса товаров покупателем
+    Ожидаемый результат - ошибка
+    """
     with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
         url = 'http://127.0.0.1:8000/shop/upload'
         data = {'file': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
@@ -340,6 +476,10 @@ def test_shop_inf_upload_buyer(client, buyer_token):
 
 @pytest.mark.django_db
 def test_shop_inf_upload_wrong_arg(client, seller_token):
+    """
+    Тест на обновление прайса товаров с неверно указанными аргументами
+    Ожидаемый результат - ошибка
+    """
     with patch('backend.tasks.handle_uploaded_file_task') as mock_task:
         url = 'http://127.0.0.1:8000/shop/upload'
         data = {'yaml': ('shop1.yaml', open(os.path.join(BASE_DIR + '/data/shop1.yaml')), 'rb')}
@@ -352,6 +492,10 @@ def test_shop_inf_upload_wrong_arg(client, seller_token):
 
 @pytest.mark.django_db
 def test_basket_post(client, buyer_token, shops_create):
+    """
+    Тест на добавление товвара в корзину
+    Ожидаемый результат - подтверждение добавления товара
+    """
     data = [{"product_info": shops_create, "quantity": 4}]
     url = 'http://127.0.0.1:8000/basket/'
     response = client.post(url, data=data)
@@ -360,6 +504,10 @@ def test_basket_post(client, buyer_token, shops_create):
 
 @pytest.mark.django_db
 def test_basket_post_no_auth(client, shops_create):
+    """
+    Тест на на добавление товаров в корзину без аутентификации
+    Ожидаемый результат - ошибка
+    """
     data = [{"product_info": shops_create, "quantity": 4}]
     url = 'http://127.0.0.1:8000/basket/'
     response = client.post(url, data=data)
@@ -369,6 +517,10 @@ def test_basket_post_no_auth(client, shops_create):
 
 @pytest.mark.django_db
 def test_basket_post_wrong_arg(client, buyer_token, shops_create):
+    """
+    Тест на добавление несуществующего товара в корзину
+    Ожидаемый результат - ошибка
+    """
     data = [{"product_info": 27, "quantity": 4}]
     url = 'http://127.0.0.1:8000/basket/'
     response = client.post(url, data=data)
@@ -378,6 +530,10 @@ def test_basket_post_wrong_arg(client, buyer_token, shops_create):
 
 @pytest.mark.django_db
 def test_basket_post_no_data(client, buyer_token, shops_create):
+    """
+    Тест на добавление товаров в корзину без их указания
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/basket/'
     response = client.post(url,)
     assert response.status_code == 403
@@ -387,6 +543,10 @@ def test_basket_post_no_data(client, buyer_token, shops_create):
 
 @pytest.mark.django_db
 def test_basket_get(client, buyer_token, basket_create):
+    """
+    Тест на получение списка товаров к корзине
+    Ожидаемый результат - список товаров
+    """
     url = 'http://127.0.0.1:8000/basket/'
     response = client.get(url)
     assert response.status_code == 200
@@ -395,6 +555,10 @@ def test_basket_get(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_basket_put(client, buyer_token, basket_create):
+    """
+    Тест на изменение количества товара в корзине
+    Ожидаемый результат - подтверждение изменения количества товара
+    """
     data = [{"product_info": basket_create[0], "quantity": 7}]
     url = 'http://127.0.0.1:8000/basket/'
     response = client.put(url, data=data)
@@ -406,6 +570,10 @@ def test_basket_put(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_basket_put_no_data(client, buyer_token, basket_create):
+    """
+    Тест на изменение количество товара в корзине без его указания
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/basket/'
     response = client.put(url,)
     assert response.status_code == 403
@@ -415,6 +583,10 @@ def test_basket_put_no_data(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_basket_put_wrong_args(client, buyer_token, basket_create):
+    """
+    Тест на изменение количества товара без указания id корзины
+    Ожидаемый результат - ошибка
+    """
     data = [{"quantity": 7}]
     url = 'http://127.0.0.1:8000/basket/'
     response = client.put(url, data=data)
@@ -424,12 +596,15 @@ def test_basket_put_wrong_args(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_basket_delete(client, buyer_token, basket_create):
+    """
+    Тест на удаление позиции из корзины
+    Ожидаемый результат - подтверждение удаления товара из корзины
+    """
     url = 'http://127.0.0.1:8000/basket/'
     data = {'items': basket_create[0]}
     content = encode_multipart('BoUnDaRyStRiNg', data)
     content_type = 'multipart/form-data; boundary=BoUnDaRyStRiNg'
     response = client.delete(url, content, content_type=content_type)
-    print(response.json())
     assert response.status_code == 200
     basket = OrderItem.objects.all()
     assert len(basket) == 0
@@ -437,6 +612,10 @@ def test_basket_delete(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_basket_delete_wrong_arg(client, buyer_token, basket_create):
+    """
+    Тест на удаление несуществующей позиции из корзины
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/basket/'
     data = {'items': 5555}
     content = encode_multipart('BoUnDaRyStRiNg', data)
@@ -449,6 +628,10 @@ def test_basket_delete_wrong_arg(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_basket_delete_no_arg(client, buyer_token, basket_create):
+    """
+    Тест на удаление позиций из корзины без указания удаляемых позиций
+    Ожидаемый результат - ошибка
+    """
     url = 'http://127.0.0.1:8000/basket/'
     response = client.delete(url,)
     assert response.status_code == 403
@@ -458,6 +641,10 @@ def test_basket_delete_no_arg(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_order_create(client, buyer_token, basket_create):
+    """
+    Тест на созданиеи заказа пользователем
+    Ожидаемый результат - подтверждение создания заказа
+    """
     with patch('backend.tasks.new_order_task') as mock_task1:
         with patch('backend.tasks.new_order_for_seller_task') as mock_task2:
             url = 'http://127.0.0.1:8000/order/customer/'
@@ -470,6 +657,10 @@ def test_order_create(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_order_create_without_contact(client, buyer_token, basket_create):
+    """
+    Тест на создание заказа пользователем без контактов для обратной связи
+    Ожидаемый результат - ошибка
+    """
     with patch('backend.tasks.new_order_task') as mock_task1:
         with patch('backend.tasks.new_order_for_seller_task') as mock_task2:
             cotact = Contact.objects.filter(user=basket_create[3]).delete()
@@ -484,6 +675,10 @@ def test_order_create_without_contact(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_order_create_no_data(client, buyer_token, basket_create):
+    """
+    Тест на создание заказа без необходимых данных
+    Ожидаемый результат - ошибка
+    """
     with patch('backend.tasks.new_order_task') as mock_task1:
         with patch('backend.tasks.new_order_for_seller_task') as mock_task2:
             url = 'http://127.0.0.1:8000/order/customer/'
@@ -494,15 +689,22 @@ def test_order_create_no_data(client, buyer_token, basket_create):
 
 @pytest.mark.django_db
 def test_order_get_by_seller(client, order_create):
+    """
+    Тест на просмотр новых заказов продавцом
+    Ожидаемый результат - список заказов
+    """
     url = 'http://127.0.0.1:8000/order/seller/'
     response = client.get(url)
     assert response.status_code == 200
-    assert response.json()[0]['total_sum'] == 400000
     assert response.json()[0]['status'] == "new"
 
 
 @pytest.mark.django_db
 def test_order_put_by_seller(client, order_create):
+    """
+    Тест на изменение статуса заказа продавцом
+    Ожидаемый результат - подтверждение изменения статуса заказа
+    """
     with patch('backend.tasks.order_status_change_task') as mock_task:
         url = 'http://127.0.0.1:8000/order/seller/'
         data = {"id": order_create[1], "status": "confirmed"}
@@ -513,9 +715,13 @@ def test_order_put_by_seller(client, order_create):
 
 @pytest.mark.django_db
 def test_order_put_by_seller_wrong_data(client, order_create):
+    """
+    Тест на изменение статуса заказа без указания измененного статуса заказа
+    Ожидаемый результат - ошибка
+    """
     with patch('backend.tasks.order_status_change_task') as mock_task:
         url = 'http://127.0.0.1:8000/order/seller/'
-        data = {"id": order_create[1],}
+        data = {"id": order_create[1]}
         response = client.put(url, data)
         assert response.status_code == 403
         assert response.json()['Возникла ошибка!'] == "Некоректный формат данных"
@@ -523,6 +729,10 @@ def test_order_put_by_seller_wrong_data(client, order_create):
 
 @pytest.mark.django_db
 def test_order_put_by_buyer(client, order_create):
+    """
+    Тест на изменение статуса заказа покупателем методом put.
+    Ожидаемый результат ошибка так как данная функция разрешена только для аккаунтов-продавцов
+    """
     with patch('backend.tasks.order_status_change_task') as mock_task:
         url = 'http://127.0.0.1:8000/order/seller/'
         data = {"id": order_create[1], "status": "confirmed"}
@@ -530,6 +740,3 @@ def test_order_put_by_buyer(client, order_create):
         response = client.put(url, data,)
         assert response.status_code == 403
         assert response.json()['Error'] == 'Только для магазинов'
-
-
-
