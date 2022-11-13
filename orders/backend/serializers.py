@@ -2,7 +2,6 @@ from rest_framework import serializers
 from backend.models import Shop, Contact, User, Category, Product, ShopProduct, Parameter, ProductInf, OrderItem, Order
 from rest_framework.exceptions import ValidationError
 import re
-import pprint
 
 
 class ContactSerializer(serializers.ModelSerializer):
