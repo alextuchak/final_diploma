@@ -1,13 +1,11 @@
-import traceback
-
 from rest_framework.authentication import TokenAuthentication
 
 from .forms import UploadFileForm
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from rest_framework.views import APIView
-from backend.models import Shop, Category, Product, ShopProduct, Parameter, ProductInf, ConfirmEmailToken, \
-    Contact, User, Order, OrderItem
-from orders.settings import BASE_DIR, DATA_ROOT
+from backend.models import Shop, Category, Product, ShopProduct, ProductInf, ConfirmEmailToken, \
+    Contact, Order, OrderItem
+from orders.settings import DATA_ROOT
 import os
 from django.contrib.auth.password_validation import validate_password
 from backend.serializers import UserSerializer, CategorySerializer, ShopSerializer, ProductSerializer, \
@@ -18,7 +16,7 @@ from backend.tasks import new_user_registered_task, new_order_task, new_order_fo
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import filters
 from rest_framework.decorators import action
