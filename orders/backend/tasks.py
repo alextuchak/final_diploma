@@ -11,13 +11,7 @@ from django.http import JsonResponse
 @app.task
 def password_reset_token_created_task(reset_password_token, **kwargs):
     """
-    Отправляем письмо с токеном для сброса пароля
-    When a token is created, an e-mail needs to be sent to the user
-    :param sender: View Class that sent the signal
-    :param instance: View Instance that sent the signal
-    :param reset_password_token: Token Model Object
-    :param kwargs:
-    :return:
+    Celery task для отправки токена сброса пароля пользователю
     """
     # send an e-mail to the user
 
@@ -37,7 +31,7 @@ def password_reset_token_created_task(reset_password_token, **kwargs):
 @app.task
 def new_user_registered_task(user_id, **kwargs):
     """
-    отправляем письмо с подтрердждением почты
+    Celery task для отправки токена подтверждения почты пользователю
     """
     # send an e-mail to the user
     token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user_id)
@@ -58,7 +52,8 @@ def new_user_registered_task(user_id, **kwargs):
 @app.task
 def new_order_task(user_id, **kwargs):
     """
-    отправяем письмо при формировании нового заказа
+    Celery task для отправки информации о новом заказе пользователю. Функция принимает аргументы user_id(id покупателя)
+    и order_id
     """
     # send an e-mail to the user
     user = User.objects.get(id=user_id)
@@ -82,7 +77,8 @@ def new_order_task(user_id, **kwargs):
 @app.task
 def new_order_for_seller_task(user_id, **kwargs):
     """
-        отправяем письмо продавцу при формировании нового заказа
+    Celery task для отправки информации о новом заказе продавцу. Функция принимает аргументы user_id (id продавца),
+    order_id, buyer_id
     """
     # send an e-mail to the user
     user = User.objects.get(id=user_id)
@@ -113,7 +109,8 @@ def new_order_for_seller_task(user_id, **kwargs):
 @app.task
 def order_status_change_task(user_id, **kwargs):
     """
-        отправяем письмо при изменении статуса заказа покупателю и продавцу
+    Celery task для отправки информации о изменении статуса заказа. Функция принимает аргументы user_id (id продавца),
+    order_id, buyer_id
     """
     # send an e-mail to the user
     user = User.objects.get(id=user_id)
@@ -139,6 +136,9 @@ def order_status_change_task(user_id, **kwargs):
 
 @app.task
 def handle_uploaded_file_task(shop_file, user):
+    """
+    Celery task для отправки информации для обновления прайса магазина
+    """
     shop = Shop()
     with open(shop_file, 'r', encoding='utf8') as stream:
         try:
