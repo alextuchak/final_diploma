@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from backend.views import ShopUpload, RegisterAccount, ConfirmAccount, LoginAccount, CategoryViewSet, ShopViewSet, \
     ProductViewSet, ShopProductViewSet, ProductInfViewSet, UserContact, AccountDetails, BasketViewSet, OrderViewSet, \
     SellerOrderViewSet
@@ -25,4 +25,5 @@ urlpatterns += [path('user/register/confirm', ConfirmAccount.as_view(), name='us
 urlpatterns += [path('user/login', LoginAccount.as_view(), name='user-login')]
 urlpatterns += [path('user/contact', UserContact.as_view(), name='user-contact')]
 urlpatterns += [path('user/info', AccountDetails.as_view(), name='user-info')]
+urlpatterns += [path('accounts/', include('allauth.urls'), name='social-accounts')]
 
