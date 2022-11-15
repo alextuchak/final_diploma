@@ -4,6 +4,8 @@ from backend.views import ShopUpload, RegisterAccount, ConfirmAccount, LoginAcco
     ProductViewSet, ShopProductViewSet, ProductInfViewSet, UserContact, AccountDetails, BasketViewSet, OrderViewSet, \
     SellerOrderViewSet
 from rest_framework.routers import DefaultRouter
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
 
 admin.site.site_header = 'Сервис заказов'
 admin.site.index_title = 'База данных'
@@ -26,4 +28,6 @@ urlpatterns += [path('user/login', LoginAccount.as_view(), name='user-login')]
 urlpatterns += [path('user/contact', UserContact.as_view(), name='user-contact')]
 urlpatterns += [path('user/info', AccountDetails.as_view(), name='user-info')]
 urlpatterns += [path('accounts/', include('allauth.urls'), name='social-accounts')]
-
+urlpatterns += [path('api/schema/', SpectacularAPIView.as_view(), name='schema')]
+urlpatterns += [path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui')]
+urlpatterns += [path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc')]

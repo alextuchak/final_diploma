@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 
 SITE_ID = 2
@@ -132,6 +134,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# drf-spectacular settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Netology-diploma',
+    'DESCRIPTION': 'django-project for order goods from shops',
+    'VERSION': '1.0.0',
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+}
 
 
 # Internationalization
@@ -180,6 +191,10 @@ REST_FRAMEWORK = {
         'user': '1000/day'
     },
 
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+    "TEST_REQUEST_DEFAULT_FORMAT": 'json'
+
 }
 
 AUTH_USER_MODEL = "backend.User"
@@ -208,8 +223,3 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-# Test request format
-
-REST_FRAMEWORK = {
-    "TEST_REQUEST_DEFAULT_FORMAT": 'json'
-}

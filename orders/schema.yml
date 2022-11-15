@@ -1,0 +1,1619 @@
+openapi: 3.0.3
+info:
+  title: Netology-diploma
+  version: 1.0.0
+  description: django-project for order goods from shops
+paths:
+  /api/schema/:
+    get:
+      operationId: api_schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /basket/:
+    get:
+      operationId: basket_list
+      description: |-
+        Класс для работы с корзиной товаров пользователя. Доступен http method get, post, put, delete. За
+        аутентификацию отвечает класс TokenAuthentication
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - basket
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+          description: ''
+    post:
+      operationId: basket_create
+      description: |-
+        HTTP method post. Метод для создания корзины товаров пользователя. После проверки методом
+        is_authenticated создается объект класса Order. Товар и его количество сохраняется в объектах класса OrderItem.
+        За сериализацию данных отвечает класс OrderItemSerializer
+      tags:
+      - basket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /basket/{id}/:
+    get:
+      operationId: basket_retrieve
+      description: |-
+        Класс для работы с корзиной товаров пользователя. Доступен http method get, post, put, delete. За
+        аутентификацию отвечает класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - basket
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    put:
+      operationId: basket_update
+      description: |-
+        Класс для работы с корзиной товаров пользователя. Доступен http method get, post, put, delete. За
+        аутентификацию отвечает класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - basket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    patch:
+      operationId: basket_partial_update
+      description: |-
+        Класс для работы с корзиной товаров пользователя. Доступен http method get, post, put, delete. За
+        аутентификацию отвечает класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - basket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    delete:
+      operationId: basket_destroy
+      description: |-
+        Класс для работы с корзиной товаров пользователя. Доступен http method get, post, put, delete. За
+        аутентификацию отвечает класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - basket
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /basket/delete/:
+    delete:
+      operationId: basket_delete_destroy
+      description: |-
+        HTTP method delete. Метод для удаления контактной информации о пользователе. После проверки методом
+        is_authenticated проверяется наличие ключа 'items' в request.data. При нахождении записи в БД принадлежащей
+        пользователю выполневшему запрос c запрашиваемым id корзины и статусом 'basket', запись удаляется. За
+        сериализацию данных отвечает класс OrderItemSerializer
+      tags:
+      - basket
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /basket/put/:
+    put:
+      operationId: basket_put_update
+      description: |-
+        HTTP method put. Метод для изменения cсодержимого корзины пользователя. После проверки методом
+        is_authenticated происходит валидация данных методом is_valid. При нахождении записи в БД с запрашиваемым
+        товаром и принадлежащей пользователю выполневшему запрос и статусом 'basket', обновляется количество товара. За
+        сериализацию данных отвечает класс OrderItemSerializer
+      tags:
+      - basket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /categories/:
+    get:
+      operationId: categories_list
+      description: |-
+        Класс для получения списка категорий товаров. Доступен http method get. За сериализацию данных отвечает класс
+        CategorySerializer. Фильтрация доступна по полю name
+      parameters:
+      - in: query
+        name: name
+        schema:
+          type: string
+      tags:
+      - categories
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
+  /categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      description: |-
+        Класс для получения списка категорий товаров. Доступен http method get. За сериализацию данных отвечает класс
+        CategorySerializer. Фильтрация доступна по полю name
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: ИД категории
+        description: A unique value identifying this Категория.
+        required: true
+      tags:
+      - categories
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /order/customer/:
+    get:
+      operationId: order_customer_list
+      description: |-
+        Класс для работы с заказами пользователя. Доступен http method get, post. За аутентификацию отвечает класс
+        TokenAuthentication
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+          description: ''
+    post:
+      operationId: order_customer_create
+      description: |-
+        HTTP method post. Метод для создания корзины товаров пользователя. После проверки методом
+        is_authenticated статус объекта класса Order, относящего к пользователю выполневшему запрос, c id указанным в
+        запросе обновляется на 'new'. Далее при наличии контактной информации пользователя вызывается celery task
+        new_order_task и new_order_for_seller_task для оповещения продавца и покупателя о создании нового заказа.
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /order/customer/{id}/:
+    get:
+      operationId: order_customer_retrieve
+      description: |-
+        Класс для работы с заказами пользователя. Доступен http method get, post. За аутентификацию отвечает класс
+        TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    put:
+      operationId: order_customer_update
+      description: |-
+        Класс для работы с заказами пользователя. Доступен http method get, post. За аутентификацию отвечает класс
+        TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    patch:
+      operationId: order_customer_partial_update
+      description: |-
+        Класс для работы с заказами пользователя. Доступен http method get, post. За аутентификацию отвечает класс
+        TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    delete:
+      operationId: order_customer_destroy
+      description: |-
+        Класс для работы с заказами пользователя. Доступен http method get, post. За аутентификацию отвечает класс
+        TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /order/seller/:
+    get:
+      operationId: order_seller_list
+      description: |-
+        Класс для продавцов для работы с заказами пользователей. Доступен http method get, put. За аутентификацию отвечает
+        класс TokenAuthentication
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+          description: ''
+    post:
+      operationId: order_seller_create
+      description: |-
+        Класс для продавцов для работы с заказами пользователей. Доступен http method get, put. За аутентификацию отвечает
+        класс TokenAuthentication
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /order/seller/{id}/:
+    get:
+      operationId: order_seller_retrieve
+      description: |-
+        Класс для продавцов для работы с заказами пользователей. Доступен http method get, put. За аутентификацию отвечает
+        класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    put:
+      operationId: order_seller_update
+      description: |-
+        Класс для продавцов для работы с заказами пользователей. Доступен http method get, put. За аутентификацию отвечает
+        класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    patch:
+      operationId: order_seller_partial_update
+      description: |-
+        Класс для продавцов для работы с заказами пользователей. Доступен http method get, put. За аутентификацию отвечает
+        класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrder'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    delete:
+      operationId: order_seller_destroy
+      description: |-
+        Класс для продавцов для работы с заказами пользователей. Доступен http method get, put. За аутентификацию отвечает
+        класс TokenAuthentication
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /order/seller/put/:
+    put:
+      operationId: order_seller_put_update
+      description: |-
+        HTTP method put. Метод для изменения статуса заказа продавцом. После проверки методом
+        is_authenticated происходит проверка типа пользователя. При нахождении записи в БД с запрашиваемым
+        id обновляется статус заказа. После обновления статуса заказа вызывается celery task order_status_change_task
+        Для оповещения продавца и покупателя об изменении статуса заказа.
+        За сериализацию данных отвечает класс OrderItemSerializer
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Order'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /product_inf/:
+    get:
+      operationId: product_inf_list
+      description: |-
+        Класс для получения списка информации о товаре. Доступен http method get. За сериализацию данных отвечает класс
+        ProduceInfSerializer. Поиск доступен по полям product_id__model, product_id__name (Поля model и name модели Product)
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - product_inf
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductInf'
+          description: ''
+  /product_inf/{id}/:
+    get:
+      operationId: product_inf_retrieve
+      description: |-
+        Класс для получения списка информации о товаре. Доступен http method get. За сериализацию данных отвечает класс
+        ProduceInfSerializer. Поиск доступен по полям product_id__model, product_id__name (Поля model и name модели Product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Информация о продукте.
+        required: true
+      tags:
+      - product_inf
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInf'
+          description: ''
+  /products/:
+    get:
+      operationId: products_list
+      description: |-
+        Класс для получения списка товаров. Доступен http method get. За сериализацию данных отвечает класс
+        ProductSerializer. Фильтрация доступна по полю name, model. Поиск доступен по полю name, model
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+          description: ''
+  /products/{id}/:
+    get:
+      operationId: products_retrieve
+      description: |-
+        Класс для получения списка товаров. Доступен http method get. За сериализацию данных отвечает класс
+        ProductSerializer. Фильтрация доступна по полю name, model. Поиск доступен по полю name, model
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Продукт.
+        required: true
+      tags:
+      - products
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+  /products_in_shop/:
+    get:
+      operationId: products_in_shop_list
+      description: |-
+        Класс для получения списка товаров в конкретном магазине. Доступен http method get. За сериализацию данных отвечает
+        класс ShopProductSerializer. Поиск доступен по полям product__model, product__name (Поля model и name модели Product)
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - products_in_shop
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShopProduct'
+          description: ''
+  /products_in_shop/{id}/:
+    get:
+      operationId: products_in_shop_retrieve
+      description: |-
+        Класс для получения списка товаров в конкретном магазине. Доступен http method get. За сериализацию данных отвечает
+        класс ShopProductSerializer. Поиск доступен по полям product__model, product__name (Поля model и name модели Product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Продукт в магазине.
+        required: true
+      tags:
+      - products_in_shop
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopProduct'
+          description: ''
+  /shop/upload:
+    post:
+      operationId: shop_upload_create
+      description: |-
+        HTTP method post. Метод для загрузки прайса товаров из .yaml файла. После проверки методом is_authenticated
+        проверяется тип пользователя. Файл из http запроса загружается в file_form модели ShopFile. После проверки
+        валидности формы вызывается celery task handle_uploaded_file_task отвечающий за обновление прайса товаров
+      tags:
+      - shop
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /shops/:
+    get:
+      operationId: shops_list
+      description: |-
+        Класс для получения списка магазинов. Доступен http method get. За сериализацию данных отвечает класс
+        ShopSerializer. Фильтрация доступна по полю name, is_work
+      parameters:
+      - in: query
+        name: is_work
+        schema:
+          type: boolean
+      - in: query
+        name: name
+        schema:
+          type: string
+      tags:
+      - shops
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shop'
+          description: ''
+  /shops/{id}/:
+    get:
+      operationId: shops_retrieve
+      description: |-
+        Класс для получения списка магазинов. Доступен http method get. За сериализацию данных отвечает класс
+        ShopSerializer. Фильтрация доступна по полю name, is_work
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Магазин.
+        required: true
+      tags:
+      - shops
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shop'
+          description: ''
+  /user/contact:
+    get:
+      operationId: user_contact_retrieve
+      description: |-
+        HTTP method get. Метод для получения контактной информации о пользователе. После проверки методом
+        is_authenticated возвращается экземлпяр класса Contact относящийся к пользователю выполневшему запрос. За
+        сериализацию данных отвечает класс ContactSerializer
+      tags:
+      - user
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+          description: ''
+    post:
+      operationId: user_contact_create
+      description: |-
+        HTTP method post. Метод для создания контактной информации о пользователе. После проверки методом
+        is_authenticated проверяется наличие ключей 'country', 'region', 'zip', 'city', 'street', 'house', 'phone' в
+        request.data. После валидации данных методом is_valid данные сохраняются в БД. За сериализацию данных отвечает
+        класс ContactSerializer
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contact'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Contact'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Contact'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+          description: ''
+    put:
+      operationId: user_contact_update
+      description: |-
+        HTTP method put. Метод для изменения контактной информации о пользователе. После проверки методом
+        is_authenticated проверяется наличие ключа 'id' в request.data. При нахождении записи в БД с запрашиваемым id
+        и принадлежащей пользователю выполневшему запрос, запись обновляется. За сериализацию данных отвечает класс
+        ContactSerializer
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contact'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Contact'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Contact'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+          description: ''
+    delete:
+      operationId: user_contact_destroy
+      description: |-
+        HTTP method delete. Метод для удаления контактной информации о пользователе. После проверки методом
+        is_authenticated проверяется наличие ключа 'items' в request.data. При нахождении записи в БД с запрашиваемым id
+        и принадлежащей пользователю выполневшему запрос, запись удаляется. За сериализацию данных отвечает класс
+        ContactSerializer
+      tags:
+      - user
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /user/info:
+    get:
+      operationId: user_info_retrieve
+      description: |-
+        HTTP method get. Метод для получения информации об аккаунте. После проверки методом is_authenticated
+        возвращается экземлпяр класса User, за сериализацию данных отвечает класс AccountDetailSerializer
+      tags:
+      - user
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetail'
+          description: ''
+    post:
+      operationId: user_info_create
+      description: |-
+        HTTP method get. Метод для изменения информации об аккаунте. После проверки методом is_authenticated проверяется
+        наличие ключа 'password' в request.data. При обнаружении ключа пароль вроверяется методом validate_password на
+        сложность и затем записывается в модель User. За валидацию и изменение других полей модели User овечает класс
+        UserSerialier
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /user/login:
+    post:
+      operationId: user_login_create
+      description: |-
+        HTTP method post. Метод для авторизации пользователя. В request.data проверяется наличие ключей 'email' и
+        'password'. Авторизация просходит методом authentificate который возвращает объект класса User при совпадении
+        полей email и password. Если поле is_active=True то для объекта класса создается TokenAuthentication
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /user/register:
+    post:
+      operationId: user_register_create
+      description: |-
+        HTTP method post. В теле json-запроса должны присутствовать поля first_name, last_name, email, password, type.
+        Пароль проверяется на сложность методом validate_password. За валидацию всех данных reauest.data отвечает
+        UserSerializer. При успешной валидации создается объект класса User, а на указанную почту отправляется email
+        с помощью celery task new_user_registered_task
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /user/register/confirm:
+    post:
+      operationId: user_register_confirm_create
+      description: |-
+        HTTP method post. В теле json-запроса должны присутствовать поля email, token. Токен направляется пользователю
+        на email после регистрации. При соответствии пары email, token поле is_active в модели User устанавливается в
+        значение True, a токен удаляется
+      tags:
+      - user
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    AccountDetail:
+      type: object
+      description: |-
+        Класс для сериализации данных пользователя. Обслуживаемая модель - User. Обслуживаемые поля - id, first_name,
+        last_name, email, company, position, password, type, is_staff.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email adress
+          maxLength: 254
+        company:
+          type: string
+          title: Компания
+          maxLength: 64
+        position:
+          type: string
+          title: Должность
+          maxLength: 32
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: Тип пользователя
+        is_staff:
+          type: boolean
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+      required:
+      - email
+      - id
+      - password
+    BasketView:
+      type: object
+      description: |-
+        Класс для cериализации данных о товарах в корзине. Обслуживаемая модель - OrderItem. Обслуживаемые поля -
+        product_info, quantity. За сериализацию данных поля product_info отвечает класс ShopProductSerializer
+      properties:
+        product_info:
+          $ref: '#/components/schemas/ShopProduct'
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Количество
+      required:
+      - product_info
+      - quantity
+    Category:
+      type: object
+      description: Класс для сериализации данных о категориях товаров. Обслуживаемая
+        модель - Category. Обслуживаемые поля - id, name
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          title: ИД категории
+        name:
+          type: string
+          title: Название категории
+          maxLength: 32
+      required:
+      - id
+      - name
+    Contact:
+      type: object
+      description: |-
+        Класс для сериализации контактной информацией. Обслуживаемая модель - Contact. Обслуживаемые поля - id, country,
+        region, zip, city, street, house, building, apartment, phone, user.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        country:
+          type: string
+          title: Страна
+          maxLength: 64
+        region:
+          type: string
+          title: Область
+          maxLength: 64
+        zip:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Почтовый индекс
+        city:
+          type: string
+          title: Город
+          maxLength: 64
+        street:
+          type: string
+          title: Улица
+          maxLength: 128
+        house:
+          type: string
+          nullable: true
+          title: Дом
+          maxLength: 16
+        building:
+          type: string
+          nullable: true
+          title: Строение
+          maxLength: 16
+        apartment:
+          type: string
+          nullable: true
+          title: Квартира
+          maxLength: 16
+        phone:
+          type: string
+          title: Телефон
+          maxLength: 32
+        user:
+          type: integer
+          writeOnly: true
+          title: Пользователь
+      required:
+      - city
+      - country
+      - id
+      - phone
+      - region
+      - street
+      - zip
+    Order:
+      type: object
+      description: |-
+        Класс для cериализации данных о заказах. Обслуживаемая модель - Order. Обслуживаемые поля - id, user, status,
+        ordered_items, total_sum. За сериализацию данных поля ordered_items отвечает класс BasketViewSerializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          title: Пользователь
+        dt:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата заказа
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Статус заказа
+        ordered_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasketView'
+        total_sum:
+          type: integer
+      required:
+      - dt
+      - id
+      - status
+    ParameterSerializers:
+      type: object
+      description: Класс для сериализации данных о парамметрах товаров. Обслуживаемая
+        модель - Parameter. Обслуживаемые поля - id, name
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название парамметра
+          maxLength: 64
+      required:
+      - id
+      - name
+    PatchedOrder:
+      type: object
+      description: |-
+        Класс для cериализации данных о заказах. Обслуживаемая модель - Order. Обслуживаемые поля - id, user, status,
+        ordered_items, total_sum. За сериализацию данных поля ordered_items отвечает класс BasketViewSerializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          title: Пользователь
+        dt:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата заказа
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Статус заказа
+        ordered_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasketView'
+        total_sum:
+          type: integer
+    Product:
+      type: object
+      description: |-
+        Класс для сериализации данных о товарах. Обслуживаемая модель - Product. Обслуживаемые поля - id, model, name,
+        category, product_inf. За сериализацию данных поля category отвечает класс CategorySerializer, за сериализацию
+        даных поля product_inf отвечает класс ProductInfSerializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        model:
+          type: string
+          title: Модель
+          maxLength: 64
+        name:
+          type: string
+          title: Название продукта
+          maxLength: 64
+        category:
+          $ref: '#/components/schemas/Category'
+        product_inf:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductInf'
+      required:
+      - category
+      - id
+      - name
+      - product_inf
+    ProductInf:
+      type: object
+      description: |-
+        Класс для сериализации данных параметров контректного товара. Обслуживаемая модель - ProductInf. Обслуживаемые поля
+        - parameter, value. За сериализацию данных поля parameter отвечает класс ParameterSerializer
+      properties:
+        parameter:
+          $ref: '#/components/schemas/ParameterSerializers'
+        value:
+          type: string
+          title: Значение
+          maxLength: 128
+      required:
+      - parameter
+    Shop:
+      type: object
+      description: |-
+        Класс для сериализации данных о магазинах. Обслуживаемая модель - Shop. Обслуживаемые поля - id, name, url, seller,
+        is_work. За сериализацию данных поля seller отвечает метод get_seller возвращающий поля id, last_name, first_name
+        объекта User
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название магазина
+          maxLength: 64
+        url:
+          type: string
+          format: uri
+          nullable: true
+          title: Ссылка
+          maxLength: 200
+        seller:
+          type: string
+          readOnly: true
+        is_work:
+          type: boolean
+          title: Доступность
+      required:
+      - id
+      - name
+      - seller
+    ShopProduct:
+      type: object
+      description: |-
+        Класс для сериализации данных о товарах в конкретном магазине. Обслуживаемая модель - ShopProduct. Обслуживаемые
+        поля - id, shop, product, ext_id, quantity, price, price_rrc. За сериализацию данных поля shop отвечает класс
+        ShopSerializer, за сериализацию даных поля product отвечает класс ProductSerializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        shop:
+          $ref: '#/components/schemas/Shop'
+        product:
+          $ref: '#/components/schemas/Product'
+        ext_id:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Внешний ИД
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Количество
+        price:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Цена
+        price_rrc:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Рекомендованная розничная цена
+      required:
+      - ext_id
+      - id
+      - price
+      - price_rrc
+      - product
+      - quantity
+      - shop
+    StatusEnum:
+      enum:
+      - basket
+      - new
+      - confirmed
+      - assembled
+      - sent
+      - delivered
+      - canceled
+      type: string
+    TypeEnum:
+      enum:
+      - seller
+      - buyer
+      type: string
+    User:
+      type: object
+      description: |-
+        Класс для сериализации данных пользователя и его контактных данных. Обслуживаемая модель - User. Обслуживаемые поля
+        - id, first_name, last_name, email, company, position, contacts, password, type. За  сериализацию данных поля
+        contacts отвечает класс ContactSerializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email adress
+          maxLength: 254
+        company:
+          type: string
+          title: Компания
+          maxLength: 64
+        position:
+          type: string
+          title: Должность
+          maxLength: 32
+        contacts:
+          allOf:
+          - $ref: '#/components/schemas/Contact'
+          readOnly: true
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: Тип пользователя
+      required:
+      - contacts
+      - email
+      - id
+      - password
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

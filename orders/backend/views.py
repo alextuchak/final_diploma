@@ -22,12 +22,14 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Sum, F
 from django.db import IntegrityError
+from drf_spectacular.utils import extend_schema
 
 
 class RegisterAccount(APIView):
     """
     Класс регистрации аккаунта. Доступен HTTP method post. За сериализацию данных отвечает класс UserSerializer.
     """
+    serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
         """
@@ -91,9 +93,10 @@ class AccountDetails(APIView):
     Класс для просмотра информации об аккаунте и изменения данных пользователя. Доступен http method get, post. За
     аутентификацию отвечает класс TokenAuthentication
     """
-
+    serializer_class = UserSerializer
     authentication_classes = (TokenAuthentication,)
 
+    @extend_schema(responses=AccountDetailSerializer,)
     def get(self, request, *args, **kwargs):
         """
         HTTP method get. Метод для получения информации об аккаунте. После проверки методом is_authenticated
@@ -141,6 +144,7 @@ class LoginAccount(APIView):
     Класс для авторизации пользователя. Доступен http method post
     """
 
+    @extend_schema(request=UserSerializer)
     def post(self, request, *args, **kwargs):
         """
         HTTP method post. Метод для авторизации пользователя. В request.data проверяется наличие ключей 'email' и
@@ -253,8 +257,10 @@ class UserContact(APIView):
     Класс для работы с контактной информацией пользователя. Доступен http method get, post, put, delete. За
     аутентификацию отвечает класс TokenAuthentication
     """
+    serializer_class = ContactSerializer
     authentication_classes = (TokenAuthentication,)
 
+    @extend_schema(request=ContactSerializer, responses=ContactSerializer,)
     def get(self, request, *args, **kwargs):
         """
         HTTP method get. Метод для получения контактной информации о пользователе. После проверки методом
@@ -267,6 +273,7 @@ class UserContact(APIView):
         serializer = ContactSerializer(contact, many=True)
         return Response(serializer.data)
 
+    @extend_schema(request=ContactSerializer)
     def post(self, request, *args, **kwargs):
         """
         HTTP method post. Метод для создания контактной информации о пользователе. После проверки методом
@@ -286,6 +293,7 @@ class UserContact(APIView):
                 return JsonResponse({'Status': False, 'Errors': serializer.errors}, status=400)
         return JsonResponse({'Status': False, 'Error': 'Не указаны все необходимые аргументы'}, status=403)
 
+    @extend_schema(request=ContactSerializer)
     def delete(self, request, *args, **kwargs):
         """
         HTTP method delete. Метод для удаления контактной информации о пользователе. После проверки методом
@@ -310,6 +318,7 @@ class UserContact(APIView):
                 return JsonResponse({'Status': True, 'Удалено объектов': deleted_count})
         return JsonResponse({'Status': False, 'Error': 'Не указаны все необходимые аргументы'}, status=403)
 
+    @extend_schema(request=ContactSerializer)
     def put(self, request, *args, **kwargs):
         """
         HTTP method put. Метод для изменения контактной информации о пользователе. После проверки методом
